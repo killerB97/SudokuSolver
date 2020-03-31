@@ -1,2 +1,2 @@
 # SudokuSolver
-an Android Sudoku Solver app using Image Recogonition
+an Android Sudoku Solver app using OCR and Character Segmentation
