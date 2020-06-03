@@ -21,7 +21,8 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  flutter:
+  curved_navigation_bar: ^0.3.2
+  flutter: 
     sdk: flutter
 
 
