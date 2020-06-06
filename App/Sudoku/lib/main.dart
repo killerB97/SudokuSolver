@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:swipe_button/swipe_button.dart';
 import 'dart:async';
 import 'dart:io';
-
 import 'Bouncy.dart';
 
 void main() {
@@ -60,9 +59,10 @@ class Sudoku extends StatelessWidget {
       backgroundColor: Colors.white,
       color: Colors.orangeAccent,
       height: 60,
+      index: 1,
       animationDuration: Duration(milliseconds: 200),
       items: <Widget>[
-        Icon(Icons.add, size: 35, color: Colors.grey[800]),
+        Icon(Icons.add_box, size: 35, color: Colors.grey[800]),
         Icon(Icons.camera_enhance, size: 35,color: Colors.grey[800]),
         Icon(Icons.help, size: 35,color: Colors.grey[800]),
       ],
@@ -245,7 +245,7 @@ class _UploadState extends State<Upload> {
             style: TextStyle(
               fontSize: 40.0,
               fontFamily: 'Monoton',
-              color: Colors.grey[800],
+              color: Colors.grey[900],
               //fontFamily: 'Monoton'
             ),
           )
@@ -271,7 +271,7 @@ class Camera extends StatefulWidget {
 class _CameraState extends State<Camera> {
   
   Future <File> _selectedFile;
-
+  
 
   Widget getImageWidget(newFile) {
     if (newFile != null) {
@@ -414,7 +414,7 @@ class _CameraState extends State<Camera> {
             style: TextStyle(
               fontSize: 40.0,
               fontFamily: 'Monoton',
-              color: Colors.grey[800],
+              color: Colors.grey[900],
               //fontFamily: 'Monoton'
             ),
           )
