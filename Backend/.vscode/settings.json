@@ -1,0 +1,8 @@
+{
+    "python.linting.pylintArgs": [
+        "--extension-pkg-whitelist=cv2"
+    ],
+    "python.linting.enabled": false,
+    "python.linting.pylintEnabled": false,
+    "python.linting.pycodestyleEnabled": true
+}
