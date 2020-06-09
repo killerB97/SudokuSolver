@@ -4,6 +4,9 @@ import tensorflow as tf
 import numpy as np
 from keras.models import Sequential
 from keras.datasets import mnist
+from tensorflow.python.keras.backend import set_session
+from tensorflow.python.keras.models import load_model
+
 
 input_shape = (28, 28, 1)
 
@@ -25,5 +28,6 @@ def buildModel(weight):
     model.add(Dense(11, activation='softmax'))
 
     model.load_weights(weight)
+    graph = tf.get_default_graph()
 
-    return model
+    return model, graph

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swipe_button/swipe_button.dart';
+import 'package:Sudoku/uploadImage.dart';
 import 'dart:async';
 import 'dart:io';
 import 'Bouncy.dart';
@@ -239,7 +240,7 @@ class _UploadState extends State<Upload> {
               borderRadius: BorderRadius.circular(18.0),
               side: BorderSide(color: Colors.white)
             ),
-            onPressed: () {},
+            onPressed: () {uploadImageToServer(newFile);},
             child: Text(
             "Solve",
             style: TextStyle(

@@ -2,21 +2,31 @@ import numpy as np
 from keras.models import Sequential
 from keras.datasets import mnist
 import operator
+import tensorflow as tf
 from operator import itemgetter
-import Model
 import cv2
 import math
 import copy
 
-class Sudoku:
 
-  model = Model.buildModel('sudoku.h5')
+class SudoSolver:
+
+  def __init__(self,model):
+      self.model = model  
 
   def dist(self,p1, p2):
 
       a = p2[0] - p1[0]
       b = p2[1] - p1[1]
       return np.sqrt((a ** 2) + (b ** 2))
+
+  def refine(sudoku):
+      avg = sum(threshold)/len(threshold) 
+      num_avg = [n for n,i in enumerate(threshold) if i<=avg]
+      t = 0
+      for i in num_avg:
+          t = math.floor(i/9)
+          sudoku[t][i%9] = 0
 
   def wrap_img(self,dil,pts):
 
@@ -27,27 +37,22 @@ class Sudoku:
       output = cv2.warpPerspective(dil,matrix,(size,size))
       return size,output
 
-  def check_empty(self,output):
+  def check_empty(self,output,threshold):
+    thresh = np.sum(output)
+    threshold.append(thresh)
 
-      thresh = np.sum(output)
-      if thresh>45000:
-          return 1
-      else:
-          return 0
-
-  def warp_box_ocr(self,dil,start,size,i,f,j,sudoku):
-
+  def warp_box_ocr(self,dil,start,size,i,f,j,sudoku,threshold):
       points1 = np.float32([[start,f*size],[start+size,f*size],[start+size,i],[start,i]])
       points2 = np.float32([[0,size],[size,size],[size,0],[0,0]])
       matrix = cv2.getPerspectiveTransform(points1,points2)
       output = cv2.warpPerspective(dil,matrix,(size,size))
       output = cv2.resize(output, (28,28), interpolation = cv2.INTER_AREA)
       pred = self.model.predict(output.reshape(1, 28, 28, 1))
-      r = self.check_empty(output)
-      if pred.argmax()==10 or r==0:
-          sudoku[j].append(0)
+      self.check_empty(output,threshold)
+      if pred.argmax()==10:
+        sudoku[j].append(0)
       else:
-          sudoku[j].append(pred.argmax())
+        sudoku[j].append(pred.argmax())
       #cv2_imshow(output)
       #print(pred.argmax())
       
@@ -131,15 +136,19 @@ class Sudoku:
 
 
   def Solve(self,img):
-      x = cv2.imread(img, 0)
-      color_img = cv2.imread(img)
+      x = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+      color_img = img
+      print(x.shape)
 
-      blur_img = cv2.GaussianBlur(x.copy(), (13, 13), 0)
+      #x = cv2.imread(img,0)
+      #color_img = cv2.imread(img)
+
+      blur_img = cv2.GaussianBlur(x.copy(), (15, 15), 0)
 
       # Binary adaptive threshold using 11 nearest neighbour pixels
       t2 = cv2.adaptiveThreshold(blur_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
-      kernel = np.ones((3, 3))
+      kernel = np.ones((1, 1))
       dilate = cv2.dilate(t2, kernel)
 
       ctrs, hier = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -154,6 +163,7 @@ class Sudoku:
       pts = [bottom_left, bottom_right, top_right, top_left]
 
       sudoku = [[] for _ in range(9)]
+      threshold = []
 
       size, output = self.wrap_img(dilate.copy(), pts)
 
@@ -168,8 +178,10 @@ class Sudoku:
               start = 0
               f += 1
               m += 1
-          self.warp_box_ocr(output.copy(), start, size, j, f, m, sudoku)
+          self.warp_box_ocr(output.copy(), start, size, j, f, m, sudoku,threshold)
           start += size
+      
+      sudoku = self.refine(sudoku)
 
       orig_sudoku = copy.deepcopy(sudoku)
       colboard, boxboard = self.get_boards(sudoku)
@@ -182,7 +194,3 @@ class Sudoku:
 
     # Link with Android app
 
-user = Sudoku()
-Answer = user.Solve('sud4.jpeg')
-cv2.imshow('ans',Answer)
-cv2.waitKey(0)
