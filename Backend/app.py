@@ -17,11 +17,10 @@ def post():
         sent_data = request.files['images'].read()
         nparr = np.frombuffer(sent_data,np.uint8)
         img = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
-
-        model,graph = Model.buildModel('sudoku.h5')
+        print(img.shape)
+        model,graph = Model.buildModel('sudoku_new.h5')
         with graph.as_default():
             curr_user = SudoSolver(model)
-            #print(img.shape)
             answer = curr_user.Solve(img)
         cv2.imwrite('result.jpg',answer)
         response = 'Received'
