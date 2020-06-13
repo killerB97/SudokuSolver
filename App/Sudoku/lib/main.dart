@@ -22,6 +22,7 @@ void main() {
 class Sudoku extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -29,11 +30,11 @@ class Sudoku extends StatelessWidget {
           ClipPath(
           clipper: MyCustomClipper(),
           child: Container(
-          height: 250,
+          height: size.height*0.36,
           color: Colors.orangeAccent,
           child:  Center(
             child: Padding(
-            padding: EdgeInsets.fromLTRB(0.0, 40.0, 0.0, 0.0),
+            padding: EdgeInsets.fromLTRB(0.0, size.height*0.065, 0.0, 0.0),
             child: Column(
             children: <Widget> [
            Text("Sudo",
@@ -105,10 +106,11 @@ class _UploadState extends State<Upload> {
 
 
   Widget getImageWidget(newFile) {
+    Size size = MediaQuery.of(context).size;
     if (newFile != null) {
       return Container(
-  height: 350,
-  width: 350,
+  height: size.width - 50,
+  width: size.width - 50,
   decoration: BoxDecoration(
     color: const Color(0xff7c94b6),
     image: DecorationImage(
@@ -161,13 +163,28 @@ class _UploadState extends State<Upload> {
               backgroundColor: Colors.white,
             )
         );
+        if(cropped !=null) {
+        return cropped;}
+        else {
+          Navigator.pop(context);
+        }}
 
-        return cropped;
-
-  }
+  
         else{
-          return null;
+          Navigator.pop(context);
         }
+  }
+
+  double buttonHeight(Size size){
+    var bottom_size = size.height - size.height*0.16;
+    var cont_size = size.height/8 + size.height*0.25 - size.height/8  + size.width-50;
+    var button = bottom_size - cont_size;
+    return button;
+  }
+
+    double imgHeight(Size size){
+    var cont_size = size.height*0.25 - size.height/8;
+    return cont_size;
   }
 
   @override
@@ -177,6 +194,8 @@ class _UploadState extends State<Upload> {
   }
   
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    print(size);
     return FutureBuilder(
           future: _selectedFile,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -197,7 +216,7 @@ class _UploadState extends State<Upload> {
             //ClipRRect(
             //borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15.0),bottomRight: Radius.circular(15.0)),
             Container(
-            height: 80,
+            height: (size.height)/8,
             decoration: BoxDecoration(
             boxShadow: <BoxShadow>[
             BoxShadow(
@@ -219,7 +238,7 @@ class _UploadState extends State<Upload> {
                   }, 
                   child: Icon(Icons.arrow_back,size:30.0,color:Colors.grey[800])
                   ),
-                SizedBox(width:75),
+                SizedBox(width: size.width/5.5),
                 Text( "Upload",
                   style: TextStyle(
                     fontSize: 25,
@@ -232,9 +251,9 @@ class _UploadState extends State<Upload> {
               )
             ),
             //),
-          SizedBox(height:60),
+          SizedBox(height: imgHeight(size)),
           getImageWidget(newFile),
-          SizedBox(height:70),
+          SizedBox(height:buttonHeight(size)),
           RaisedButton(
               shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18.0),
@@ -275,10 +294,11 @@ class _CameraState extends State<Camera> {
   
 
   Widget getImageWidget(newFile) {
+    Size size = MediaQuery.of(context).size;
     if (newFile != null) {
       return Container(
-  height: 350,
-  width: 350,
+  height: size.width - 60,
+  width: size.width - 60,
   decoration: BoxDecoration(
     color: const Color(0xff7c94b6),
     image: DecorationImage(
@@ -342,6 +362,18 @@ class _CameraState extends State<Camera> {
         }
   }
 
+    double buttonHeight(Size size){
+    var bottom_size = size.height - size.height*0.16;
+    var cont_size = size.height/8 + size.height*0.25 - size.height/8  + size.width-50;
+    var button = bottom_size - cont_size;
+    return button;
+  }
+
+    double imgHeight(Size size){
+    var cont_size = size.height*0.25 - size.height/8;
+    return cont_size;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -349,6 +381,7 @@ class _CameraState extends State<Camera> {
   }
   
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return FutureBuilder(
           future: _selectedFile,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -367,7 +400,7 @@ class _CameraState extends State<Camera> {
         body: Column(
           children: <Widget>[
             Container(
-            height: 80,
+            height: size.height/8,
             decoration: BoxDecoration(
             boxShadow: <BoxShadow>[
             BoxShadow(
@@ -389,7 +422,7 @@ class _CameraState extends State<Camera> {
                   }, 
                   child: Icon(Icons.arrow_back,size:30.0,color:Colors.grey[800])
                   ),
-                SizedBox(width:75),
+                SizedBox(width:size.width/5.5),
                 Text( "Camera",
                   style: TextStyle(
                     fontSize: 25,
@@ -401,15 +434,15 @@ class _CameraState extends State<Camera> {
               ],
               )
             ),
-          SizedBox(height:60),
+          SizedBox(height: imgHeight(size)),
           getImageWidget(newFile),
-          SizedBox(height:70),
+          SizedBox(height: buttonHeight(size)),
           RaisedButton(
               shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18.0),
               side: BorderSide(color: Colors.white)
             ),
-            onPressed: () {},
+            onPressed: () {uploadImageToServer(newFile);},
             child: Text(
             "Solve",
             style: TextStyle(

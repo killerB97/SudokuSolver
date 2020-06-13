@@ -238,8 +238,8 @@ class SudoSolver:
               start+=size
               continue
           else:
-              coord = ((2*start+size)//2,(j+f*size)//2)
-              cv2.putText(output,str(sudoku[m][i%9]),coord,font,1,(0,255,0),2,cv2.LINE_AA)
+              coord = (int((2*start+size)//2.05),int((j+f*size)//1.95))
+              cv2.putText(output,str(sudoku[m][i%9]),coord,font,1,(52,112,255),2,cv2.LINE_AA)
           start+=size
       return output
 
