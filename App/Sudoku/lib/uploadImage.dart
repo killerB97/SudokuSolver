@@ -24,3 +24,5 @@ uploadImageToServer(File imageFile)async
   print(r.statusCode);
   print(await r.stream.transform(utf8.decoder).join());
 }
+
+

@@ -27,6 +27,8 @@ dependencies:
   http: ^0.12.0+4
   dio: ^3.0.9
   swipe_button: ^0.0.2
+  bubble: ^1.1.9+1
+  splashscreen: ^1.2.0
   flutter: 
     sdk: flutter
 
@@ -80,6 +82,11 @@ flutter:
     - family: Raleway
       fonts:
         - asset: fonts/Raleway-Regular.ttf
+
+    - family: Pokemon
+      fonts:
+        - asset: fonts/Pokemon.ttf
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

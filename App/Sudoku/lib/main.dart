@@ -3,9 +3,11 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:swipe_button/swipe_button.dart';
+import 'package:splashscreen/splashscreen.dart';
+import 'package:bubble/bubble.dart';
 import 'package:Sudoku/uploadImage.dart';
 import 'dart:async';
+import 'dart:math';
 import 'dart:io';
 import 'Bouncy.dart';
 
@@ -23,18 +25,19 @@ class Sudoku extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
+    return SafeArea(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: <Widget>[
           ClipPath(
           clipper: MyCustomClipper(),
           child: Container(
-          height: size.height*0.36,
+          height: size.height*0.34,
           color: Colors.orangeAccent,
           child:  Center(
             child: Padding(
-            padding: EdgeInsets.fromLTRB(0.0, size.height*0.065, 0.0, 0.0),
+            padding: EdgeInsets.fromLTRB(0.0, size.height*0.045, 0.0, 0.0),
             child: Column(
             children: <Widget> [
            Text("Sudo",
@@ -90,7 +93,7 @@ class Sudoku extends StatelessWidget {
         //Handle button tap
       },
     ),
-    );
+    ));
     
   }
 }
@@ -183,7 +186,7 @@ class _UploadState extends State<Upload> {
   }
 
     double imgHeight(Size size){
-    var cont_size = size.height*0.25 - size.height/8;
+    var cont_size = size.height*0.23 - size.height/8;
     return cont_size;
   }
 
@@ -259,7 +262,14 @@ class _UploadState extends State<Upload> {
               borderRadius: BorderRadius.circular(18.0),
               side: BorderSide(color: Colors.white)
             ),
-            onPressed: () {uploadImageToServer(newFile);},
+            onPressed: () {
+              uploadImageToServer(newFile);
+              Navigator.push(
+              context,
+              Bouncy(widget: Loading())
+              );
+              
+            },
             child: Text(
             "Solve",
             style: TextStyle(
@@ -370,7 +380,7 @@ class _CameraState extends State<Camera> {
   }
 
     double imgHeight(Size size){
-    var cont_size = size.height*0.25 - size.height/8;
+    var cont_size = size.height*0.23 - size.height/8;
     return cont_size;
   }
 
@@ -442,7 +452,13 @@ class _CameraState extends State<Camera> {
               borderRadius: BorderRadius.circular(18.0),
               side: BorderSide(color: Colors.white)
             ),
-            onPressed: () {uploadImageToServer(newFile);},
+            onPressed: () async {
+              await uploadImageToServer(newFile);
+              Navigator.push(
+              context,
+              Bouncy(widget: Answer())
+              );
+              },
             child: Text(
             "Solve",
             style: TextStyle(
@@ -465,4 +481,183 @@ class _CameraState extends State<Camera> {
 
     );
   }
+}
+
+class Loading extends StatefulWidget {
+  @override
+  _LoadingState createState() => _LoadingState();
+}
+
+class _LoadingState extends State<Loading> {
+  @override
+  Widget build(BuildContext context) {
+    return SplashScreen(
+      seconds: 3,
+      backgroundColor: Color.fromRGBO(1, 11, 19,1), 
+      image: Image.asset('images/loading.gif'),
+      loaderColor: Color.fromRGBO(1, 11, 19,1),
+      photoSize: 150,
+      navigateAfterSeconds: Answer(), 
+      loadingText: Text(
+        'Solving',
+        style: TextStyle(fontFamily: 'Monoton', fontSize: 40.0, color: Color.fromRGBO(35, 221, 236,1))
+
+      ),
+    );
+  }
+}
+
+class Answer extends StatefulWidget {
+  @override
+  _AnswerState createState() => _AnswerState();
+}
+
+class _AnswerState extends State<Answer> {
+  @override
+
+  NetworkImage finalImage;
+
+  double imgHeight(Size size){
+    var cont_size = size.height*0.20 - size.height/8;
+    return cont_size;
+  }
+
+  Widget getImageWidget(newFile) {
+    Size size = MediaQuery.of(context).size;
+    if (newFile != null) {
+      return Container(
+  height: size.width - 50,
+  width: size.width - 50,
+  decoration: BoxDecoration(
+    color: const Color(0xff7c94b6),
+    image: DecorationImage(
+      image: 
+      FileImage(
+        newFile,
+      ),
+    fit:BoxFit.cover
+    ),
+    border: Border.all(
+      color: Colors.grey[900],
+      width: 5.0,
+    ),
+  ),
+);
+    } else {
+      return Container(
+  height: 350,
+  width: 350,
+  decoration: BoxDecoration(
+    color: const Color(0xff7c94b6),
+    image: DecorationImage(
+      image: AssetImage('images/placeholder.png')
+    ),
+    border: Border.all(
+      color: Colors.white,
+      width: 5.0,
+    ),
+  ),
+);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    finalImage = NetworkImage("http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}");
+  }
+
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return SafeArea(
+      child: Scaffold(
+      backgroundColor: Colors.green[300],
+      body:Column(
+        children: <Widget>[
+            Container(
+            height: size.height/8,
+            decoration: BoxDecoration(
+          color: Colors.green[300],
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15.0),bottomRight: Radius.circular(15.0))),
+            //color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                FlatButton(
+                  color: Colors.green[300],
+                  onPressed: (){
+                    Navigator.pop(context);
+                  }, 
+                  child: Icon(Icons.arrow_back,size:30.0,color:Colors.white)
+                  ),
+                  SizedBox(width: size.width - 180,),
+                  FlatButton(
+                  color: Colors.green[300],
+                  onPressed: (){
+                  Navigator.push(
+                  context,
+                  Bouncy(widget: Sudoku())
+              );
+                  }, 
+                  child: Icon(Icons.home,size:32.0,color:Colors.white)
+                  ),                  
+                  ])),
+
+      Padding(
+      padding: EdgeInsets.fromLTRB(size.width*0.07, size.width*0.025, size.width*0.07, 0.0),
+      child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget> [
+      CircleAvatar(
+          radius: 40,
+          backgroundImage: AssetImage('images/robot_alt.png'),
+        ),
+      SizedBox(width: size.width*0.05),
+      Expanded(
+        child: Bubble(
+        elevation: 6.0,
+        margin: BubbleEdges.only(top: 10),
+        nip: BubbleNip.leftTop,
+        alignment: Alignment.topLeft,
+        child: Text('Hello Human! I am the AI that powers this app. I have solved the puzzle to the best of my abilities. Don\'t hesitate to compliment me :D',
+        style: TextStyle(fontFamily: 'Pokemon', fontSize: 10, height: 1.5),
+        ),
+      )),
+           
+      ])),
+        SizedBox(height: imgHeight(size)), 
+        Center(
+        child: Container(
+        height: size.width - 50,
+        width: size.width-50,
+        decoration: BoxDecoration(
+      image: DecorationImage(image: finalImage,
+      ),
+      border: Border.all(
+      color: Colors.grey[900],
+      width: 5.0,
+    ),
+    ),
+    )
+    ),]
+      )
+    ));
+  }
+}
+
+class Incorrect extends StatefulWidget {
+  @override
+  _IncorrectState createState() => _IncorrectState();
+}
+
+class _IncorrectState extends State<Incorrect> {
+  @override
+  
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.redAccent,
+      
+    );
+  }
+  // color_code loading_gif rgb(1, 11, 19)
 }

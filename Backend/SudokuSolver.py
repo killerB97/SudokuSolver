@@ -11,6 +11,9 @@ import copy
 
 class SudoSolver:
 
+  def __init__(self):
+      self.answer = None
+
   def __init__(self,model):
       self.model = model  
 
@@ -245,7 +248,7 @@ class SudoSolver:
 
 
   def Solve(self,img):
-      x = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+      x = cv2.cvtColor(img.copy(), cv2.COLOR_BGR2GRAY)
       color_img = img
 
       #x = cv2.imread(img,0)
@@ -270,15 +273,22 @@ class SudoSolver:
       top_right = polygon[max(enumerate([pt[0][0] - pt[0][1] for pt in polygon]), key=itemgetter(1))[0]][0]
       pts = [bottom_left, bottom_right, top_right, top_left]
 
-      sudoku = [[] for _ in range(9)]
-      threshold = []
+      sudoku1 = [[] for _ in range(9)]
+      sudoku2 = [[] for _ in range(9)]
+      sudoku3 = [[] for _ in range(9)]
+      threshold1 = []
+      threshold2 = []
+      threshold3 = []
 
       size, output = self.wrap_img(x.copy(), pts)
       thresh_lvl = output.shape[0]//40
+      print(thresh_lvl)
       if thresh_lvl%2==0:
         thresh_lvl+=1
       output = cv2.GaussianBlur(output.copy(), (13, 13), 0)
-      output = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl, 2)
+      output1 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl, 2)
+      output2 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl-6, 2)
+      output3 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl+6, 2)
 
       start = 0
       f = 1
@@ -291,19 +301,34 @@ class SudoSolver:
               start = 0
               f += 1
               m += 1
-          self.warp_box_ocr(output.copy(), start, size, j, f, m, sudoku,threshold)
+          self.warp_box_ocr(output1.copy(), start, size, j, f, m, sudoku1,threshold1)
+          self.warp_box_ocr(output2.copy(), start, size, j, f, m, sudoku2,threshold2)
+          self.warp_box_ocr(output3.copy(), start, size, j, f, m, sudoku3,threshold3)
           start += size
       
 
-      self.refine(sudoku, threshold)
+      self.refine(sudoku1, threshold1)
+      self.refine(sudoku2, threshold2)
+      self.refine(sudoku3, threshold3)
 
+      print(sudoku1)
+      print(sudoku2)
+      print(sudoku3)
+      
+      test = [sudoku1,sudoku2,sudoku3]
+      
+      for sudoku in test:
+        orig_sudoku = copy.deepcopy(sudoku)
+        colboard, boxboard = self.get_boards(sudoku)
+        self.sudokuSolver(sudoku, boxboard, colboard)
+        if sudoku==orig_sudoku:
+            continue
+        else:
+            break
 
-      orig_sudoku = copy.deepcopy(sudoku)
-      colboard, boxboard = self.get_boards(sudoku)
-      self.sudokuSolver(sudoku, boxboard, colboard)
-
-      size1, output1 = self.wrap_img(color_img.copy(), pts)
-      final_img = self.writeToBoard(output1.copy(), sudoku, orig_sudoku, size1)
+      size1, final_out = self.wrap_img(color_img.copy(), pts)
+      final_img = self.writeToBoard(final_out.copy(), sudoku, orig_sudoku, size1)
+      self.answer = final_img
       return final_img
 
 
