@@ -29,6 +29,8 @@ dependencies:
   swipe_button: ^0.0.2
   bubble: ^1.1.9+1
   splashscreen: ^1.2.0
+  async_loader: ^0.1.2
+  transparent_image: ^1.0.0
   flutter: 
     sdk: flutter
 

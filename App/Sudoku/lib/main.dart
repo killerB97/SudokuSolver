@@ -5,6 +5,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:splashscreen/splashscreen.dart';
 import 'package:bubble/bubble.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'package:Sudoku/uploadImage.dart';
 import 'dart:async';
 import 'dart:math';
@@ -75,7 +76,7 @@ class Sudoku extends StatelessWidget {
         if (index==0){
           Timer(Duration(milliseconds: 350), (){
             Navigator.push(
-              context, Bouncy(widget: Upload())    
+              context, Bouncy(widget: Upload('Upload',ImageSource.gallery))    
         );
         });
         }
@@ -83,7 +84,7 @@ class Sudoku extends StatelessWidget {
           Timer(Duration(milliseconds: 350), (){
             Navigator.push(
               context,
-              Bouncy(widget: Camera())
+              Bouncy(widget: Upload('Camera',ImageSource.camera))
               );
             
         });}
@@ -99,14 +100,21 @@ class Sudoku extends StatelessWidget {
 }
 
 class Upload extends StatefulWidget {
+  final String head;
+  final ImageSource src;
+
+  Upload(this.head,this.src);
+
   @override
-  _UploadState createState() => _UploadState();
+  _UploadState createState() => _UploadState(head,src);
 }
 
 class _UploadState extends State<Upload> {
-  
-  Future <File> _selectedFile;
+  String head;
+  ImageSource src;
 
+  _UploadState(this.head,this.src);
+  Future <File> _selectedFile;
 
   Widget getImageWidget(newFile) {
     Size size = MediaQuery.of(context).size;
@@ -193,7 +201,7 @@ class _UploadState extends State<Upload> {
   @override
   void initState() {
     super.initState();
-    _selectedFile = imgDisp(ImageSource.gallery);
+    _selectedFile = imgDisp(src);
   }
   
   Widget build(BuildContext context) {
@@ -211,6 +219,7 @@ class _UploadState extends State<Upload> {
               return Center(child:CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color> (Colors.orangeAccent),));
               case ConnectionState.done: {
               var newFile = snapshot.data;
+              uploadImageToServer(newFile);
               return   SafeArea(
         child: Scaffold(
         backgroundColor: Colors.orangeAccent,
@@ -242,7 +251,7 @@ class _UploadState extends State<Upload> {
                   child: Icon(Icons.arrow_back,size:30.0,color:Colors.grey[800])
                   ),
                 SizedBox(width: size.width/5.5),
-                Text( "Upload",
+                Text( head,
                   style: TextStyle(
                     fontSize: 25,
                     fontFamily: 'Raleway',
@@ -263,7 +272,6 @@ class _UploadState extends State<Upload> {
               side: BorderSide(color: Colors.white)
             ),
             onPressed: () {
-              uploadImageToServer(newFile);
               Navigator.push(
               context,
               Bouncy(widget: Loading())
@@ -293,196 +301,6 @@ class _UploadState extends State<Upload> {
   }
 }
 
-class Camera extends StatefulWidget {
-  @override
-  _CameraState createState() => _CameraState();
-}
-
-class _CameraState extends State<Camera> {
-  
-  Future <File> _selectedFile;
-  
-
-  Widget getImageWidget(newFile) {
-    Size size = MediaQuery.of(context).size;
-    if (newFile != null) {
-      return Container(
-  height: size.width - 60,
-  width: size.width - 60,
-  decoration: BoxDecoration(
-    color: const Color(0xff7c94b6),
-    image: DecorationImage(
-      image: 
-      FileImage(
-        newFile,
-      ),
-    fit:BoxFit.cover
-    ),
-    border: Border.all(
-      color: Colors.grey[900],
-      width: 5.0,
-    ),
-  ),
-);
-    } else {
-      return Container(
-  height: 350,
-  width: 350,
-  decoration: BoxDecoration(
-    color: const Color(0xff7c94b6),
-    image: DecorationImage(
-      image: AssetImage('images/placeholder.png')
-    ),
-    border: Border.all(
-      color: Colors.white,
-      width: 5.0,
-    ),
-  ),
-);
-    }
-  }
-  Future <File> imgDisp(ImageSource source) async {
-      final picker = ImagePicker();
-      final image = await picker.getImage(source: source);
-
-      if(image != null){
-            File cropped = await ImageCropper.cropImage(
-            sourcePath: image.path,
-            aspectRatio: CropAspectRatio(
-                ratioX: 1, ratioY: 1),
-            compressQuality: 100,
-            maxWidth: 700,
-            maxHeight: 700,
-            compressFormat: ImageCompressFormat.jpg,
-            androidUiSettings: AndroidUiSettings(
-              toolbarColor: Colors.orangeAccent,
-              toolbarTitle: "RPS Cropper",
-              statusBarColor: Colors.grey[800],
-              backgroundColor: Colors.white,
-            )
-        );
-        if(cropped !=null) {
-        return cropped;}
-        else {
-          Navigator.pop(context);
-        }}
-
-      else{
-          Navigator.pop(context);
-        }
-  }
-
-    double buttonHeight(Size size){
-    var bottom_size = size.height - size.height*0.16;
-    var cont_size = size.height/8 + size.height*0.25 - size.height/8  + size.width-50;
-    var button = bottom_size - cont_size;
-    return button;
-  }
-
-    double imgHeight(Size size){
-    var cont_size = size.height*0.23 - size.height/8;
-    return cont_size;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedFile = imgDisp(ImageSource.camera);
-  }
-  
-  Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    return FutureBuilder(
-          future: _selectedFile,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.none:
-              return Center(child:CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color> (Colors.orangeAccent),));
-              case ConnectionState.waiting:
-              return Center(child:CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color> (Colors.orangeAccent),));
-              case ConnectionState.active:
-              return Center(child:CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color> (Colors.orangeAccent),));
-              case ConnectionState.done: {
-              var newFile = snapshot.data;
-              return   SafeArea(
-        child: Scaffold(
-        backgroundColor: Colors.orangeAccent,
-        body: Column(
-          children: <Widget>[
-            Container(
-            height: size.height/8,
-            decoration: BoxDecoration(
-            boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.grey[800],
-                blurRadius: 10.0,
-                offset: Offset(0.0, 0.5)
-            ),
-          ],
-          color: Colors.white,
-          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15.0),bottomRight: Radius.circular(15.0))),
-            //color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                FlatButton(
-                  color: Colors.white,
-                  onPressed: (){
-                    Navigator.pop(context);
-                  }, 
-                  child: Icon(Icons.arrow_back,size:30.0,color:Colors.grey[800])
-                  ),
-                SizedBox(width:size.width/5.5),
-                Text( "Camera",
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontFamily: 'Raleway',
-                    color: Colors.grey[800]
-                  ),
-                )
-
-              ],
-              )
-            ),
-          SizedBox(height: imgHeight(size)),
-          getImageWidget(newFile),
-          SizedBox(height: buttonHeight(size)),
-          RaisedButton(
-              shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.white)
-            ),
-            onPressed: () async {
-              await uploadImageToServer(newFile);
-              Navigator.push(
-              context,
-              Bouncy(widget: Answer())
-              );
-              },
-            child: Text(
-            "Solve",
-            style: TextStyle(
-              fontSize: 40.0,
-              fontFamily: 'Monoton',
-              color: Colors.grey[900],
-              //fontFamily: 'Monoton'
-            ),
-          )
-          ),
-
-          ],
-        )
-        )
-    );
-              }
-
-            }
-          },
-
-    );
-  }
-}
-
 class Loading extends StatefulWidget {
   @override
   _LoadingState createState() => _LoadingState();
@@ -492,7 +310,7 @@ class _LoadingState extends State<Loading> {
   @override
   Widget build(BuildContext context) {
     return SplashScreen(
-      seconds: 3,
+      seconds: 5,
       backgroundColor: Color.fromRGBO(1, 11, 19,1), 
       image: Image.asset('images/loading.gif'),
       loaderColor: Color.fromRGBO(1, 11, 19,1),
@@ -564,7 +382,8 @@ class _AnswerState extends State<Answer> {
   @override
   void initState() {
     super.initState();
-    finalImage = NetworkImage("http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}");
+    finalImage = getImageFromServer();
+    //finalImage = NetworkImage("http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}");
   }
 
   Widget build(BuildContext context) {
@@ -631,13 +450,18 @@ class _AnswerState extends State<Answer> {
         height: size.width - 50,
         width: size.width-50,
         decoration: BoxDecoration(
-      image: DecorationImage(image: finalImage,
-      ),
-      border: Border.all(
-      color: Colors.grey[900],
-      width: 5.0,
+        border: Border.all(
+        color: Colors.grey[900], //                   <--- border color
+        width: 5.0,
     ),
-    ),
+        ),
+        child: FadeInImage(
+        width: size.width-50, 
+        height: size.width-50,
+        placeholder: AssetImage('images/imgload.gif'),
+        image: finalImage,
+        fit: BoxFit.cover,)
+        
     )
     ),]
       )

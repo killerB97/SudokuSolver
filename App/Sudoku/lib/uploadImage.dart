@@ -5,8 +5,20 @@ import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'dart:math';
 import 'dart:convert';
 
+
+Map<String, String> headers = {};
+
+void updateCookie(http.StreamedResponse response) {
+    String rawCookie = response.headers['set-cookie'];
+    if (rawCookie != null) {
+      int index = rawCookie.indexOf(';');
+      headers['cookie'] =
+          (index == -1) ? rawCookie : rawCookie.substring(0, index);
+    }
+  }
 
 uploadImageToServer(File imageFile)async
 {
@@ -21,8 +33,14 @@ uploadImageToServer(File imageFile)async
   );
 
   http.StreamedResponse r = await request.send();
+  updateCookie(r);
   print(r.statusCode);
   print(await r.stream.transform(utf8.decoder).join());
+}
+
+NetworkImage getImageFromServer()
+{
+  return NetworkImage("http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}", headers: headers);
 }
 
 

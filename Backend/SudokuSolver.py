@@ -242,7 +242,7 @@ class SudoSolver:
               continue
           else:
               coord = (int((2*start+size)//2.05),int((j+f*size)//1.95))
-              cv2.putText(output,str(sudoku[m][i%9]),coord,font,1,(52,112,255),2,cv2.LINE_AA)
+              cv2.putText(output,str(sudoku[m][i%9]),coord,font,1,(255,0,0),2,cv2.LINE_AA)
           start+=size
       return output
 
@@ -311,9 +311,6 @@ class SudoSolver:
       self.refine(sudoku2, threshold2)
       self.refine(sudoku3, threshold3)
 
-      print(sudoku1)
-      print(sudoku2)
-      print(sudoku3)
       
       test = [sudoku1,sudoku2,sudoku3]
       
