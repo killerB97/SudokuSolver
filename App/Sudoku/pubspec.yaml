@@ -31,6 +31,14 @@ dependencies:
   splashscreen: ^1.2.0
   async_loader: ^0.1.2
   transparent_image: ^1.0.0
+  provider: ^3.2.0
+  circular_profile_avatar: ^1.0.6
+  gallery_saver: ^2.0.1
+  path_provider: ^1.4.4
+  esys_flutter_share: ^1.0.2
+  permission_handler: ^5.0.1
+  fluttertoast: ^4.0.1
+  image_gallery_saver: ^1.5.0
   flutter: 
     sdk: flutter
 
@@ -88,6 +96,18 @@ flutter:
     - family: Pokemon
       fonts:
         - asset: fonts/Pokemon.ttf
+
+    - family: Sweet
+      fonts:
+        - asset: fonts/sweet_purple.ttf
+
+    - family: Quantumn
+      fonts:
+        - asset: fonts/Quantum.otf
+
+    - family: Potra
+      fonts:
+        - asset: fonts/Potra.ttf
 
   #
   # For details regarding fonts from package dependencies,

@@ -17,10 +17,10 @@ app = Flask(__name__)
 tokens = {}
 
 def create_token():
-    uid = res = ''.join(random.choices(string.ascii_uppercase +
+    uid = ''.join(random.choices(string.ascii_uppercase +
                              string.digits, k = 10)) 
     if uid not in tokens:
-        tokens[uid] = 'active'
+        tokens[uid] = 0
         return uid
     else:
         r = create_token()
@@ -56,6 +56,8 @@ def post():
 def get():
         uid = request.cookies.get('user_id')
         print(uid)
+        tokens[uid]+=1
+        print(tokens[uid])
         answer = cv2.imread('sessions/'+uid+'.png',1)
         file_object = io.BytesIO()
         img = cv2.cvtColor(answer, cv2.COLOR_BGR2RGB)
@@ -64,7 +66,8 @@ def get():
         img.save(file_object, 'PNG')
         file_object.seek(0)
     # Destroys temp file and token
-        destroy_token(uid)
+        if tokens[uid]==2:
+            destroy_token(uid)
         try:
             return send_file(file_object,mimetype='image/PNG')
         except FileNotFoundError:

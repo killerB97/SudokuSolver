@@ -281,11 +281,12 @@ class SudoSolver:
       threshold3 = []
 
       size, output = self.wrap_img(x.copy(), pts)
-      thresh_lvl = output.shape[0]//40
+      thresh_lvl = output.shape[0]//50
+      blur_lvl = output.shape[0]//40
       print(thresh_lvl)
-      if thresh_lvl%2==0:
-        thresh_lvl+=1
-      output = cv2.GaussianBlur(output.copy(), (13, 13), 0)
+      thresh_lvl += 1 if thresh_lvl%2==0 else 0
+      blur_lvl += 1 if blur_lvl%2==0 else 0
+      output = cv2.GaussianBlur(output.copy(), (blur_lvl, blur_lvl), 0)
       output1 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl, 2)
       output2 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl-6, 2)
       output3 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl+6, 2)
