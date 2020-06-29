@@ -1,6 +1,4 @@
 import numpy as np
-from keras.models import Sequential
-from keras.datasets import mnist
 import operator
 import tensorflow as tf
 from operator import itemgetter

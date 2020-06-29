@@ -1,11 +1,7 @@
-from sklearn.model_selection import  train_test_split
 from keras.layers import Dense, Conv2D, Dropout, Flatten, MaxPooling2D
 import tensorflow as tf
 import numpy as np
 from keras.models import Sequential
-from keras.datasets import mnist
-from tensorflow.python.keras.backend import set_session
-from tensorflow.python.keras.models import load_model
 
 
 input_shape = (28, 28, 1)
