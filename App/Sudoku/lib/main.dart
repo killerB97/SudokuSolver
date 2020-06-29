@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:splashscreen/splashscreen.dart';
-import 'package:bubble/bubble.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -13,19 +12,221 @@ import 'package:Sudoku/ClipShadowPath.dart';
 import 'package:Sudoku/uploadImage.dart';
 import 'package:Sudoku/circleReveal.dart';
 import 'package:esys_flutter_share/esys_flutter_share.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
-import 'Bouncy.dart';
+import 'package:liquid_swipe/liquid_swipe.dart';
 
-void main() {
-
-  runApp(MaterialApp(
-    home: Sudoku(),
+Future <void> main() async{
+    WidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool _seen = getPref(prefs);
+    runApp(MaterialApp(
+    home:_seen ? Sudoku():Onboarding(),
     debugShowCheckedModeBanner: false,
   ));
 }
 
+bool getPref(SharedPreferences pref){
+  if (pref.containsKey('seen')){
+    return true;
+  }
+  else{
+    pref.setBool('seen', true);
+    return false;
+  }
+}
+
+class Onboarding extends StatefulWidget {
+  //var prefs;
+  //Onboarding(this.prefs);
+  @override
+  _OnboardingState createState() => _OnboardingState();
+}
+
+class _OnboardingState extends State<Onboarding> {
+  //var prefs;
+  //_OnboardingState(this.prefs);
+
+  //void setFirstTime() async{
+    //await prefs.setBool('seen', true);
+  //}
+
+  @override
+  void initState() {
+    //if (prefs!=0){
+    //setFirstTime();}
+    super.initState();
+  }
+  
+  @override
+  Widget pageIndicator(int currentPage, int page){
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 4.0),
+      height: currentPage==page? 13.0 : 8.0,
+      width:  currentPage==page? 13.0 : 8.0,
+      decoration: BoxDecoration(
+        color: currentPage==page? Colors.white : Colors.grey[300],
+        borderRadius: BorderRadius.circular(12.0),
+        )
+    );
+  }
+  
+  Widget Screens(Size size,String imgPath,Color bgColor, String header, String body, int page, int screens,LiquidController control, int skipJump, IconData icon){
+        return SafeArea(
+        child: Scaffold(
+        backgroundColor: bgColor,
+        body: Container(
+        height: size.height,
+        width: size.width,
+        child: Stack(
+          children: <Widget>[
+
+              page!=screens-1? Positioned(
+                  right: 10,
+                  child: InkWell(
+                    onTap: () {
+                      control.jumpToPage(
+                        page: control.currentPage + skipJump
+                        );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                      'Skip',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontFamily: 'Quicksand'
+                      )
+                  ),
+                    ),
+                  ),
+              ):Container()
+              ,
+              Positioned(
+                    top: 0.15 * size.height,
+                    left: size.width/2 - size.width*size.height*0.0004,
+                    child: CircularProfileAvatar(
+                    '',
+                    child: Image.asset(imgPath),
+                    borderColor: Colors.transparent,
+                    borderWidth: 0,
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    radius: size.width*size.height*0.0004
+                  ),
+              ),
+              Positioned(
+                  top: 0.55*size.height,
+                  left: 30,
+                  child: Text(
+                  header,
+                  style: TextStyle(
+                    fontSize: size.height*0.034,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Raleway',
+                    color: Colors.white
+                  ),
+                ),
+              ),
+            
+            Positioned(
+                top: 0.6*size.height,
+                left: 30,
+                right: 30,
+                child: Container(
+                  child: Text(
+                  body,
+                  style: TextStyle(
+                    fontSize: size.height*0.022,
+                    fontFamily: 'QuickLight',
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white
+                  )
+              ),
+                ),
+            ),
+            page!=screens-1?Positioned(
+                top: 0.8*size.height,
+                left:size.width/2 - 18,
+                child: Container(
+                height: 45.0,
+                width: 45.0,
+                child: Icon(icon,size:30.0,color:Colors.grey[800]),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ):
+            Positioned(
+                top: 0.8*size.height,
+                left:size.width/2 - (size.width/2 - 50),
+                child: Container(
+                height: size.height*0.08,
+                width: size.width-100,
+                child: FlatButton(
+                  onPressed: (){
+                Navigator.push(
+                  context,
+                  RevealRoute(
+                    page: Sudoku(),
+                    maxRadius: size.height*1.17,
+                    centerAlignment: Alignment.bottomCenter,),
+                ); 
+                  },
+                  child: Text(
+                    'Get Started',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 30.0,
+                      fontFamily: 'Quicksand',
+                      fontWeight: FontWeight.w600
+                    )
+                  )
+                ),
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(	63, 61, 86,1),
+                  borderRadius: BorderRadius.circular(10.0)
+                ),
+              ),
+
+            ),
+            Positioned(
+                top: size.height - 60,
+                left: size.width/2-32,
+                child: Row(
+                children: <Widget>[
+                  for(int i=0; i<screens;i++) pageIndicator(i, page)
+                ],),
+            ),
+          
+          ],)
+  ),
+      ),
+    );
+}
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    int noOfScreens = 4;
+    var control = LiquidController();
+    String desc1 = 'Already have a saved Sudoku Image in your device? You can upload it to our App and the AI will take care of the rest. Try to ensure the puzzle fits within the frame.';
+    String desc2 = 'You can also directly use the Camera on your phone to capture an image of a Sudoku. The AI will process and solve it. Try to ensure the puzzle fits within the frame.';
+    String desc3 = 'You have the option to crop, resize or rotate the image according to your preference. The AI will take any help you can give it.';
+    String desc4 = 'Feel free to download and share the solution that our App produces for your puzzle.';
+    return LiquidSwipe(
+      pages: [
+        Screens(size,'images/upload.png',Color.fromRGBO(	63, 61, 86,1),'Upload Image',desc1,0, noOfScreens,control,3, Icons.add_box),
+        Screens(size,'images/camera.png',Color.fromRGBO(249, 168, 38,1), 'Click Picture',desc2,1,noOfScreens,control,2, Icons.camera_enhance),
+        Screens(size,'images/crop.png',Color.fromRGBO(140, 122, 230,1), 'Crop and Resize',desc3,2,noOfScreens,control,1, Icons.crop),
+        Screens(size,'images/Download.png',Color.fromRGBO(255, 99, 102,1), 'Download and Share',desc4,3,noOfScreens,control,0, Icons.share)
+      ],
+      liquidController: control,
+      enableLoop: false,
+      );
+  }
+}
 
 
 class Sudoku extends StatelessWidget {
@@ -110,7 +311,15 @@ class Sudoku extends StatelessWidget {
                 ); 
           });}
           if (index==2){
-            print('tutorial');
+            Timer(Duration(milliseconds: 350), (){
+              Navigator.push(
+                context,
+                RevealRoute(
+                  page: Onboarding(),
+                  maxRadius: size.height*1.17,
+                  centerAlignment: Alignment.bottomRight,),
+                );}  
+          );
           }
           //Handle button tap
         },
@@ -159,26 +368,12 @@ class _UploadState extends State<Upload> {
     ),
   ),
 );
-    } else {
-      return Container(
-  height: imgSize,
-  width: imgSize,
-  decoration: BoxDecoration(
-    color: const Color(0xff7c94b6),
-    image: DecorationImage(
-      image: AssetImage('images/placeholder.png')
-    ),
-    border: Border.all(
-      color: Color.fromRGBO(62, 48, 100,1),
-      width: 5.0,
-    ),
-  ),
-);
-    }
+    } 
   }
   Future <File> imgDisp(ImageSource source) async {
       final picker = ImagePicker();
       final image = await picker.getImage(source: source);
+      Size size = MediaQuery.of(context).size;
 
       if(image != null){
             File cropped = await ImageCropper.cropImage(
@@ -199,12 +394,31 @@ class _UploadState extends State<Upload> {
         if(cropped !=null) {
         return cropped;}
         else {
-          Navigator.pop(context);
+          if (source==ImageSource.gallery)
+          {Navigator.pop(context);}
+          else {
+                Navigator.push(
+                context,
+                RevealRoute(
+                  page: Upload('Camera',ImageSource.camera),
+                  maxRadius: size.height*1.17,
+                  centerAlignment: Alignment.topLeft,),
+                ); 
+          }
         }}
 
-  
         else{
-          Navigator.pop(context);
+          if (source==ImageSource.gallery)
+          {Navigator.pop(context);}
+          else {
+                Navigator.push(
+                context,
+                RevealRoute(
+                  page: Sudoku(),
+                  maxRadius: size.height*1.17,
+                  centerAlignment: Alignment.bottomRight,),
+                );             
+          }
         }
   }
 
@@ -218,6 +432,11 @@ class _UploadState extends State<Upload> {
     double imgHeight(Size size){
     var cont_size = size.height*0.23 - size.height/8;
     return cont_size;
+  }
+
+  Future <File> imgProcess(ImageSource src) async {
+    var img = await imgDisp(src);
+    return img;
   }
 
   @override
@@ -242,7 +461,8 @@ class _UploadState extends State<Upload> {
               return Center(child:CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color> (Color.fromRGBO(62, 48, 100,1))));
               case ConnectionState.done: {
               var newFile = snapshot.data;
-              uploadImageToServer(newFile);
+              if (newFile!=null)
+              {
               return   SafeArea(
               child: Container(
                   decoration: BoxDecoration(
@@ -304,7 +524,7 @@ class _UploadState extends State<Upload> {
                 Navigator.push(
                 context,
                   RevealRoute(
-                  page: Loading(size),
+                  page: Loading(size,newFile),
                   maxRadius: size.height*1.17,
                   centerAlignment: Alignment.bottomCenter,),
                 );
@@ -330,7 +550,16 @@ class _UploadState extends State<Upload> {
         )
     );
               }
-
+    else {
+      return SafeArea(
+          child: Container(
+          height: size.height,
+          width: size.width,
+          color: Color.fromRGBO(62, 48, 100,1)
+        ),
+      );
+    }
+              }
             }
           },
 
@@ -340,16 +569,18 @@ class _UploadState extends State<Upload> {
 
 class Loading extends StatefulWidget {
   Size size;
-
-  Loading(this.size);
+  File newFile;
+  Loading(this.size,this.newFile);
   @override
-  _LoadingState createState() => _LoadingState(size);
+  _LoadingState createState() => _LoadingState(size,newFile);
 }
 
 class _LoadingState extends State<Loading> {
     Size size;
+    File newFile;
     var myFile;
-    _LoadingState(this.size);
+
+    _LoadingState(this.size,this.newFile);
 
     void initState() {
     super.initState();
@@ -358,9 +589,10 @@ class _LoadingState extends State<Loading> {
 
 
   startTime() async {
+    await uploadImageToServer(newFile);
     myFile = await networkImageToByte();
     //myFile = null;
-    var duration = new Duration(seconds: 5);
+    var duration = new Duration(seconds: 3);
     return new Timer(duration, route);
   }
 
@@ -377,7 +609,7 @@ class _LoadingState extends State<Loading> {
   @override
   Widget build(BuildContext context) {
     return SplashScreen(
-      seconds: 6,
+      seconds: 10,
       backgroundColor: Color.fromRGBO(19, 8, 49,1), 
       image: Image.asset('images/loader2.gif'),
       loaderColor: Color.fromRGBO(19, 8, 49,1),

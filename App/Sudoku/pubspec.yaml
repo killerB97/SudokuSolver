@@ -31,7 +31,7 @@ dependencies:
   splashscreen: ^1.2.0
   async_loader: ^0.1.2
   transparent_image: ^1.0.0
-  provider: ^3.2.0
+  provider: ^4.0.4
   circular_profile_avatar: ^1.0.6
   gallery_saver: ^2.0.1
   path_provider: ^1.4.4
@@ -39,6 +39,8 @@ dependencies:
   permission_handler: ^5.0.1
   fluttertoast: ^4.0.1
   image_gallery_saver: ^1.5.0
+  liquid_swipe: ^1.5.0-dev.1
+  shared_preferences: ^0.5.7+3
   flutter: 
     sdk: flutter
 
@@ -108,6 +110,18 @@ flutter:
     - family: Potra
       fonts:
         - asset: fonts/Potra.ttf
+
+    - family: Quicksand
+      fonts:
+        - asset: fonts/Quicksand.ttf
+
+    - family: QuickLight
+      fonts:
+        - asset: fonts/QuickLight.ttf
+
+    - family: Roboto
+      fonts:
+        - asset: fonts/Roboto.ttf
 
   #
   # For details regarding fonts from package dependencies,
