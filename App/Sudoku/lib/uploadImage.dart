@@ -1,16 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:typed_data';
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'resources/app_config.dart';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:convert';
 
 
 Map<String, String> headers = {};
+AppConfig url = AppConfig();
+
 
 
 
@@ -25,7 +25,7 @@ void updateCookie(http.StreamedResponse response) {
 
 uploadImageToServer(File imageFile)async
 {
-  http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse('http://192.168.0.132:5000/sudomagic'));
+  http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse(url.postUrl));
 
   request.files.add(
     await http.MultipartFile.fromPath(
@@ -43,12 +43,12 @@ uploadImageToServer(File imageFile)async
 
 NetworkImage getImageFromServer()
 { 
-  return NetworkImage("http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}", headers: headers);
+  return NetworkImage("${url.getUrl}?dummy=${ValueKey(new Random().nextInt(1000))}", headers: headers);
 }
 
 Future<Uint8List> networkImageToByte() async {
   http.Response response = await http.get(
-    "http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}", 
+    "${url.getUrl}?dummy=${ValueKey(new Random().nextInt(1000))}", 
     headers: headers,
 ); 
 return response.bodyBytes;

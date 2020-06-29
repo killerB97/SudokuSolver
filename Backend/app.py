@@ -10,7 +10,7 @@ import os
 import random
 import string
 import cv2
-from SudokuSolver import SudoSolver
+import SudokuSolver
 
 app = Flask(__name__)
 
@@ -38,7 +38,7 @@ def post():
     img = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
     model,graph = Model.buildModel('sudoku_new_trial.h5')
     with graph.as_default():
-        curr_user = SudoSolver(model)
+        curr_user = SudokuSolver.SudoSolver(model)
         answer = curr_user.Solve(img)
     uid = create_token()
     cv2.imwrite('sessions/'+uid+'.png',answer)
@@ -55,9 +55,7 @@ def post():
 @app.route('/answer', methods= ['GET'])
 def get():
         uid = request.cookies.get('user_id')
-        print(uid)
         tokens[uid]+=1
-        print(tokens[uid])
         answer = cv2.imread('sessions/'+uid+'.png',1)
         file_object = io.BytesIO()
         img = cv2.cvtColor(answer, cv2.COLOR_BGR2RGB)

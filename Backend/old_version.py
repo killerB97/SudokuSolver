@@ -16,17 +16,12 @@ class Sudoku:
       self.output = None
 
   def threshImg(self,thresh,img):
-      self.output = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh, 2)
+      self.output = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl, 2)
 
-  def refine(self):
-      avg = sum(self.threshold)/len(self.threshold) 
-      num_avg = [n for n,thresh in enumerate(self.threshold) if thresh<=avg]
-      row = 0
-      for index in num_avg:
-          row = math.floor(index/9)
-          self.sudoku[row][index%9] = 0
 
- 
+
+
+
 
 class SudoSolver:
 
@@ -41,6 +36,14 @@ class SudoSolver:
       a = p2[0] - p1[0]
       b = p2[1] - p1[1]
       return np.sqrt((a ** 2) + (b ** 2))
+
+  def refine(self,sudoku, threshold):
+      avg = sum(threshold)/len(threshold) 
+      num_avg = [n for n,i in enumerate(threshold) if i<=avg]
+      t = 0
+      for i in num_avg:
+          t = math.floor(i/9)
+          sudoku[t][i%9] = 0
 
   def wrap_img(self,dil,pts):
 
@@ -161,8 +164,8 @@ class SudoSolver:
     bbox = [[left, top], [right, bottom]]
     return img, np.array(bbox, dtype='float32'), seed_point
 
-  def warp_box_ocr(self,dil,start,size,end,factor,index,sudoku,threshold):
-      points1 = np.float32([[start,factor*size],[start+size,factor*size],[start+size,end],[start,end]])
+  def warp_box_ocr(self,dil,start,size,i,f,j,sudoku,threshold):
+      points1 = np.float32([[start,f*size],[start+size,f*size],[start+size,i],[start,i]])
       points2 = np.float32([[0,size],[size,size],[size,0],[0,0]])
       matrix = cv2.getPerspectiveTransform(points1,points2)
       output = cv2.warpPerspective(dil,matrix,(size,size))
@@ -189,27 +192,27 @@ class SudoSolver:
       self.check_empty(output,threshold)
       if pred.argmax()==10:
         # Append prediction to sudoku list representation used for solving
-        sudoku[index].append(0)
+        sudoku[j].append(0)
       else:
-        sudoku[index].append(pred.argmax())
+        sudoku[j].append(pred.argmax())
 
       
   def get_boards(self,board):
 
       colboard = list(map(list, zip(*board)))
       boxboard = [[] for _ in range(len(board))]
-      row = 0
-      boxCol = 0
-      boxRow = 0
-      while row<9:
+      k = 0
+      p = 0
+      t = 0
+      while k<9:
           for i in range(3):
               for j in range(3):
-                  boxboard[row].append(board[i+boxRow][j+boxCol])
-          row+=1
-          boxCol+=3
-          if row%3==0:
-              boxCol =0
-              boxRow+=3
+                  boxboard[k].append(board[i+t][j+p])
+          k+=1
+          p+=3
+          if k%3==0:
+              p =0
+              t+=3
       return colboard,boxboard
 
   def sqr(self,row,col):
@@ -249,29 +252,26 @@ class SudoSolver:
 
 
   def writeToBoard(self,output,sudoku,orig,size):
-      x_coord = 0
-      sudoIndex = 0
-      factor = 1
-      y_coord = 0
+
+      start = 0
+      m = 0
+      f = 1
+      j = 0
       size = int(size/9)
       font = cv2.FONT_HERSHEY_COMPLEX
-
-      for grid in range(81):
-          if grid%9==0 and grid!=0:
-              y_coord+=size
-              x_coord=0
-              factor+=1
-              sudoIndex+=1
-
-          if orig[sudoIndex][grid%9]!=0:
-              x_coord+=size
+      for i in range(81):
+          if i%9==0 and i!=0:
+              j+=size
+              start=0
+              f+=1
+              m+=1
+          if orig[m][i%9]!=0:
+              start+=size
               continue
-
           else:
-              coord = (int((2*x_coord+size)//2.05),int((y_coord+factor*size)//1.95))
-              cv2.putText(output,str(sudoku[sudoIndex][grid%9]),coord,font,1,(130, 0, 75),2,cv2.LINE_AA)
-          x_coord+=size
-
+              coord = (int((2*start+size)//2.05),int((j+f*size)//1.95))
+              cv2.putText(output,str(sudoku[m][i%9]),coord,font,1,(255,0,0),2,cv2.LINE_AA)
+          start+=size
       return output
 
   def findSudokuBox(self,img):
@@ -291,21 +291,6 @@ class SudoSolver:
 
       return pts
 
-  def extractDigits(self,size,solutions):
-      x_coord = 0
-      factor = 1
-      y_coord = 0
-      size = int(size / 9)
-      sudoIndex = 0
-      for grid in range(81):
-          if grid % 9 == 0 and grid != 0:
-              y_coord += size
-              x_coord = 0
-              factor += 1
-              sudoIndex += 1
-          for sudokuInstance in solutions:
-            self.warp_box_ocr(sudokuInstance.output.copy(), x_coord, size, y_coord, factor, sudoIndex, sudokuInstance.sudoku, sudokuInstance.threshold)
-          x_coord += size
 
 
   def Solve(self,img):
@@ -316,47 +301,62 @@ class SudoSolver:
 
       puzzleCorners = self.findSudokuBox(preProcessedImg)
 
-      size, croppedImg = self.wrap_img(grey_img.copy(), puzzleCorners)
-      
-      # Identifying optimal threshold filter size and Gaussian Blur filter size based on size of image
-      thresh_lvl = croppedImg.shape[0]//50
-      blur_lvl = croppedImg.shape[0]//40
-  
+      sudoku1 = [[] for _ in range(9)]
+      sudoku2 = [[] for _ in range(9)]
+      sudoku3 = [[] for _ in range(9)]
+      threshold1 = []
+      threshold2 = []
+      threshold3 = []
+
+      size, output = self.wrap_img(grey_img.copy(), puzzleCorners)
+      thresh_lvl = output.shape[0]//50
+      blur_lvl = output.shape[0]//40
+      print(thresh_lvl)
       thresh_lvl += 1 if thresh_lvl%2==0 else 0
       blur_lvl += 1 if blur_lvl%2==0 else 0
+      output = cv2.GaussianBlur(output.copy(), (blur_lvl, blur_lvl), 0)
+      output1 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl, 2)
+      output2 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl-6, 2)
+      output3 = cv2.adaptiveThreshold(output, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, thresh_lvl+6, 2)
 
-      croppedImg = cv2.GaussianBlur(croppedImg.copy(), (blur_lvl, blur_lvl), 0)
+      start = 0
+      f = 1
+      j = 0
+      size = int(size / 9)
+      m = 0
+      for i in range(81):
+          if i % 9 == 0 and i != 0:
+              j += size
+              start = 0
+              f += 1
+              m += 1
+          self.warp_box_ocr(output1.copy(), start, size, j, f, m, sudoku1,threshold1)
+          self.warp_box_ocr(output2.copy(), start, size, j, f, m, sudoku2,threshold2)
+          self.warp_box_ocr(output3.copy(), start, size, j, f, m, sudoku3,threshold3)
+          start += size
       
-      # owing to inconsistency of outputs based on threshold filter sizes, I propose to investigate three different thresh values based on heuristics to get the best possible output
-      depthThresh = [thresh_lvl, thresh_lvl+6, thresh_lvl-6]
 
-      sudoku1 = Sudoku()
-      sudoku2 = Sudoku()
-      sudoku3 = Sudoku()
+      self.refine(sudoku1, threshold1)
+      self.refine(sudoku2, threshold2)
+      self.refine(sudoku3, threshold3)
 
-      solutions = [sudoku1,sudoku2,sudoku3]
       
-      for sudoku,thresh_lvl in zip(solutions,depthThresh):
-          sudoku.threshImg(thresh_lvl,croppedImg.copy())
+      test = [sudoku1,sudoku2,sudoku3]
       
-      self.extractDigits(size,solutions)
-      
-      index = 0
-
-      for n,sudoInstance in enumerate(solutions):
-        sudoInstance.refine()
-        orig_sudoku = copy.deepcopy(sudoInstance.sudoku)
-        colboard, boxboard = self.get_boards(sudoInstance.sudoku)
-        self.sudokuSolver(sudoInstance.sudoku, boxboard, colboard)
-        if sudoInstance.sudoku==orig_sudoku:
+      for sudoku in test:
+        orig_sudoku = copy.deepcopy(sudoku)
+        colboard, boxboard = self.get_boards(sudoku)
+        self.sudokuSolver(sudoku, boxboard, colboard)
+        if sudoku==orig_sudoku:
             continue
         else:
-            index = n
             break
 
-      sizeFinal, finalAnswerImg = self.wrap_img(color_img.copy(), puzzleCorners)
-      final_img = self.writeToBoard(finalAnswerImg.copy(), solutions[index].sudoku, orig_sudoku, sizeFinal)
+      size1, final_out = self.wrap_img(color_img.copy(), pts)
+      final_img = self.writeToBoard(final_out.copy(), sudoku, orig_sudoku, size1)
+      self.answer = final_img
       return final_img
+
 
     # Link with Android app
 

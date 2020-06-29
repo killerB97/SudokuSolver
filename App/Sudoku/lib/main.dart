@@ -11,18 +11,20 @@ import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:Sudoku/ClipShadowPath.dart';
 import 'package:Sudoku/uploadImage.dart';
 import 'package:Sudoku/circleReveal.dart';
+import 'resources/app_config.dart';
 import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:liquid_swipe/liquid_swipe.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:liquid_swipe/liquid_swipe.dart';
+
 
 Future <void> main() async{
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool _seen = getPref(prefs);
     runApp(MaterialApp(
-    home:_seen ? Sudoku():Onboarding(),
+    home:_seen ? SudoMagic():Onboarding(),
     debugShowCheckedModeBanner: false,
   ));
 }
@@ -38,24 +40,15 @@ bool getPref(SharedPreferences pref){
 }
 
 class Onboarding extends StatefulWidget {
-  //var prefs;
-  //Onboarding(this.prefs);
   @override
   _OnboardingState createState() => _OnboardingState();
 }
 
 class _OnboardingState extends State<Onboarding> {
-  //var prefs;
-  //_OnboardingState(this.prefs);
 
-  //void setFirstTime() async{
-    //await prefs.setBool('seen', true);
-  //}
 
   @override
   void initState() {
-    //if (prefs!=0){
-    //setFirstTime();}
     super.initState();
   }
   
@@ -171,7 +164,7 @@ class _OnboardingState extends State<Onboarding> {
                 Navigator.push(
                   context,
                   RevealRoute(
-                    page: Sudoku(),
+                    page: SudoMagic(),
                     maxRadius: size.height*1.17,
                     centerAlignment: Alignment.bottomCenter,),
                 ); 
@@ -211,16 +204,14 @@ class _OnboardingState extends State<Onboarding> {
     Size size = MediaQuery.of(context).size;
     int noOfScreens = 4;
     var control = LiquidController();
-    String desc1 = 'Already have a saved Sudoku Image in your device? You can upload it to our App and the AI will take care of the rest. Try to ensure the puzzle fits within the frame.';
-    String desc2 = 'You can also directly use the Camera on your phone to capture an image of a Sudoku. The AI will process and solve it. Try to ensure the puzzle fits within the frame.';
-    String desc3 = 'You have the option to crop, resize or rotate the image according to your preference. The AI will take any help you can give it.';
-    String desc4 = 'Feel free to download and share the solution that our App produces for your puzzle.';
+    AppConfig obj = AppConfig();
+
     return LiquidSwipe(
       pages: [
-        Screens(size,'images/upload.png',Color.fromRGBO(	63, 61, 86,1),'Upload Image',desc1,0, noOfScreens,control,3, Icons.add_box),
-        Screens(size,'images/camera.png',Color.fromRGBO(249, 168, 38,1), 'Click Picture',desc2,1,noOfScreens,control,2, Icons.camera_enhance),
-        Screens(size,'images/crop.png',Color.fromRGBO(140, 122, 230,1), 'Crop and Resize',desc3,2,noOfScreens,control,1, Icons.crop),
-        Screens(size,'images/Download.png',Color.fromRGBO(255, 99, 102,1), 'Download and Share',desc4,3,noOfScreens,control,0, Icons.share)
+        Screens(size,'images/upload.png',Color.fromRGBO(	63, 61, 86,1),'Upload Image',obj.OnboardingText1,0, noOfScreens,control,3, Icons.add_box),
+        Screens(size,'images/camera.png',Color.fromRGBO(249, 168, 38,1), 'Click Picture',obj.OnboardingText2,1,noOfScreens,control,2, Icons.camera_enhance),
+        Screens(size,'images/crop.png',Color.fromRGBO(140, 122, 230,1), 'Crop and Resize',obj.OnboardingText3,2,noOfScreens,control,1, Icons.crop),
+        Screens(size,'images/Download.png',Color.fromRGBO(255, 99, 102,1), 'Download and Share',obj.OnboardingText4,3,noOfScreens,control,0, Icons.share)
       ],
       liquidController: control,
       enableLoop: false,
@@ -229,7 +220,7 @@ class _OnboardingState extends State<Onboarding> {
 }
 
 
-class Sudoku extends StatelessWidget {
+class SudoMagic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -349,11 +340,13 @@ class _UploadState extends State<Upload> {
 
   Widget getImageWidget(newFile, imgSize) {
     Size size = MediaQuery.of(context).size;
+    print(imgSize);
     if (newFile != null) {
       return Container(
   height: imgSize,
   width: imgSize,
   decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(imgSize*0.087),
     color: const Color(0xff7c94b6),
     image: DecorationImage(
       image: 
@@ -414,7 +407,7 @@ class _UploadState extends State<Upload> {
                 Navigator.push(
                 context,
                 RevealRoute(
-                  page: Sudoku(),
+                  page: SudoMagic(),
                   maxRadius: size.height*1.17,
                   centerAlignment: Alignment.bottomRight,),
                 );             
@@ -467,7 +460,7 @@ class _UploadState extends State<Upload> {
               child: Container(
                   decoration: BoxDecoration(
                   image: DecorationImage(
-                  image: AssetImage("images/sky3.jpg"), fit: BoxFit.cover)),
+                  image: AssetImage("images/sky3.png"), fit: BoxFit.cover)),
           child: Scaffold(
           backgroundColor: Colors.transparent,
           body: Column(
@@ -517,7 +510,7 @@ class _UploadState extends State<Upload> {
                 color: Color.fromRGBO(19, 8, 49,1) ,
                 shape: StadiumBorder(
                 //borderRadius: BorderRadius.circular(18.0),
-                side: BorderSide(color: Color.fromRGBO(159, 135, 167,1)),
+                side: BorderSide(color: Colors.white),
                 
               ),
               onPressed: () {
@@ -592,7 +585,7 @@ class _LoadingState extends State<Loading> {
     await uploadImageToServer(newFile);
     myFile = await networkImageToByte();
     //myFile = null;
-    var duration = new Duration(seconds: 3);
+    var duration = new Duration(seconds: 1);
     return new Timer(duration, route);
   }
 
@@ -609,7 +602,7 @@ class _LoadingState extends State<Loading> {
   @override
   Widget build(BuildContext context) {
     return SplashScreen(
-      seconds: 10,
+      seconds: 1,
       backgroundColor: Color.fromRGBO(19, 8, 49,1), 
       image: Image.asset('images/loader2.gif'),
       loaderColor: Color.fromRGBO(19, 8, 49,1),
@@ -708,7 +701,7 @@ class _AnswerState extends State<Answer> {
                 Navigator.push(
                     context,
                     RevealRoute(
-                      page: Sudoku(),
+                      page: SudoMagic(),
                       maxRadius: size.height*1.17,
                       centerAlignment: Alignment.topRight,),
                     );
