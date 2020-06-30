@@ -8,6 +8,6 @@ class AppConfig {
   final String OnboardingText4 = 'Feel free to download and share the solution that our App produces for your puzzle.';
   
 
-  final String postUrl = 'http://192.168.0.132:5000/sudomagic';
-  final String getUrl = 'http://192.168.0.132:5000/answer';
+  final String postUrl = 'http://killerb97.pythonanywhere.com/sudomagic';
+  final String getUrl = 'http://killerb97.pythonanywhere.com/answer';
 }
