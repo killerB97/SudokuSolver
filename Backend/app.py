@@ -6,8 +6,10 @@ from PIL import Image
 import tensorflow as tf
 import io
 import Model
+import ast
 import os
 import random
+import json
 import string
 import cv2
 import SudokuSolver
@@ -39,17 +41,27 @@ def post():
     model,graph = Model.buildModel('sudoku_new_trial.h5')
     with graph.as_default():
         curr_user = SudokuSolver.SudoSolver(model)
-        answer = curr_user.Solve(img)
-    uid = create_token()
-    cv2.imwrite('sessions/'+uid+'.png',answer)
-    res = make_response('Received')
-    res.set_cookie('user_id', uid, max_age=None)
-    response = 'Received'
-    try:
-       return res
-       #Response(response=response, status=200,mimetype='image/png')
-    except FileNotFoundError:
-        abort(404)
+        sol,answer,error_img = curr_user.Solve(img)
+    if sol:
+        uid = create_token()
+        cv2.imwrite('sessions/'+uid+'.png',answer)
+        res = make_response({'response': 'Received'})
+        res.set_cookie('user_id', uid, max_age=None)
+        try:
+            return res
+        #Response(response=response, status=200,mimetype='image/png')
+        except FileNotFoundError:
+            abort(404)
+    else:
+        uid = create_token()
+        cv2.imwrite('sessions/'+uid+'.png',error_img)
+        res = make_response({'response': answer})
+        res.set_cookie('user_id', uid, max_age=None)
+        try:
+            return res
+        #Response(response=response, status=200,mimetype='image/png')
+        except FileNotFoundError:
+            abort(404)
 
 
 @app.route('/answer', methods= ['GET'])
@@ -71,6 +83,31 @@ def get():
         except FileNotFoundError:
             abort(404)
 
+@app.route('/resolve', methods= ['GET'])
+def errorGet():
+    uid = request.cookies.get('user_id')
+    resolvedSudoku = request.headers.get('sudoku')
+    resolvedSudoku = ast.literal_eval(resolvedSudoku)
+    tokens[uid]+=1
+    answer = cv2.imread('sessions/'+uid+'.png',1)
+    model,graph = Model.buildModel('sudoku_new_trial.h5')
+    with graph.as_default():
+        curr_user = SudokuSolver.SudoSolver(model)
+        answer = curr_user.reSolve(resolvedSudoku,answer)    
+    file_object = io.BytesIO()
+    img = cv2.cvtColor(answer, cv2.COLOR_BGR2RGB)
+    img = Image.fromarray(img.astype('uint8'))
+# write PNG in file-object
+    img.save(file_object, 'PNG')
+    file_object.seek(0)
+# Destroys temp file and token
+    if tokens[uid]==2:
+        destroy_token(uid)
+    try:
+        return send_file(file_object,mimetype='image/PNG')
+    except FileNotFoundError:
+        abort(404)
+ 
 
 
 if __name__ == "__main__":

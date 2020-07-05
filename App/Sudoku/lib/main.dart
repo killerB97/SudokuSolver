@@ -572,6 +572,7 @@ class _LoadingState extends State<Loading> {
     Size size;
     File newFile;
     var myFile;
+    List resp;
 
     _LoadingState(this.size,this.newFile);
 
@@ -582,18 +583,26 @@ class _LoadingState extends State<Loading> {
 
 
   startTime() async {
-    await uploadImageToServer(newFile);
+    resp = await uploadImageToServer(newFile);
+    if (resp.length==0){
     myFile = await networkImageToByte();
     //myFile = null;
     var duration = new Duration(seconds: 1);
     return new Timer(duration, route);
+    }
+    else{
+      myFile = false;
+      var duration = new Duration(seconds: 1);
+      return new Timer(duration, route);
+    }
+
   }
 
   route() {
               Navigator.push(
               context,
                 RevealRoute(
-                page: Answer(myFile),
+                page: Answer(myFile,resp,false),
                 maxRadius: size.height*1.46,
                 centerAlignment: Alignment.centerRight,),
               );
@@ -602,7 +611,7 @@ class _LoadingState extends State<Loading> {
   @override
   Widget build(BuildContext context) {
     return SplashScreen(
-      seconds: 1,
+      seconds: 10,
       backgroundColor: Color.fromRGBO(19, 8, 49,1), 
       image: Image.asset('images/loader2.gif'),
       loaderColor: Color.fromRGBO(19, 8, 49,1),
@@ -618,11 +627,73 @@ class _LoadingState extends State<Loading> {
   }
 }
 
+class Reloading extends StatefulWidget {
+  Size size;
+  List sudoku;
+  Reloading(this.size,this.sudoku);
+  @override
+  _ReloadingState createState() => _ReloadingState(size,sudoku);
+}
+
+class _ReloadingState extends State<Reloading> {
+    Size size;
+    List sudoku;
+    var myFile;
+
+
+    _ReloadingState(this.size,this.sudoku);
+
+    void initState() {
+    super.initState();
+    startTime();
+  }
+
+
+  startTime() async {
+    myFile = await uploadResolved(sudoku);
+    //myFile = null;
+    var duration = new Duration(seconds: 1);
+    return new Timer(duration, route);
+
+  }
+
+  route() {
+              Navigator.push(
+              context,
+                RevealRoute(
+                page: Answer(myFile,sudoku,true),
+                maxRadius: size.height*1.46,
+                centerAlignment: Alignment.centerRight,),
+              );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SplashScreen(
+      seconds: 10,
+      backgroundColor: Color.fromRGBO(8, 2, 4,1), 
+      image: Image.asset('images/resolver.gif'),
+      loaderColor: Color.fromRGBO(8, 2, 4,1),
+      photoSize: 150,
+      //navigateAfterSeconds: Answer(), 
+      //navigateAfterSeconds: Answer(),
+      loadingText: Text(
+        'Resolve',
+        style: TextStyle(fontFamily: 'Monoton', fontSize: 40.0, color: Color.fromRGBO(237, 68, 26,1))
+
+      ),
+    );
+  }
+}
+
 class Answer extends StatefulWidget {
   var myFile;
-  Answer(this.myFile);
+  var resp;
+  bool error;
+
+  Answer(this.myFile,this.resp,this.error);
   @override
-  _AnswerState createState() => _AnswerState(myFile);
+  _AnswerState createState() => _AnswerState(myFile,resp,error);
 }
 
 class _AnswerState extends State<Answer> {
@@ -630,22 +701,101 @@ class _AnswerState extends State<Answer> {
 
   var finalImage;
   var myFile;
+  var resp; 
+  bool error;
 
-  _AnswerState(this.myFile);
+  bool flag = false ;
+
+  _AnswerState(this.myFile,this.resp, this.error);
 
 
   @override
   void initState() {
     super.initState();
-    finalImage = getImageFromServer();
+    if (myFile is bool){
+      flag = true;
+    }
+    else{
+    finalImage = getImageFromServer(error,resp);
     _requestPermission();
+    }
     //finalImage = NetworkImage("http://192.168.0.132:5000/answer?dummy=${ValueKey(new Random().nextInt(1000))}");
+  }
+
+  List <dynamic> getBorders(int row, int col){
+      List topLeft = [false,false];
+      if (row%3==0){
+          topLeft[0] = true;
+      }
+      if (col%3==0){
+          topLeft[1] = true;
+      }
+      return topLeft;
+  }
+
+  Widget sudokuCell(int row,int col, double imgSize,int value,List resp){
+    final controller = TextEditingController(text:value==0?'':'$value');
+    var topLeft = getBorders(row, col);
+    return Container(
+      height: imgSize/9,
+      width: imgSize/9,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: topLeft[0]? BorderSide(width: 2.0, color: Colors.black): BorderSide(width: 0.0, color: Colors.black),
+          left: topLeft[1]? BorderSide(width: 2.0, color: Colors.black): BorderSide(width: 0.0, color: Colors.black)
+        )
+      ),
+      child: TextField(
+        controller: controller,
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        style: TextStyle(color:Colors.black, fontSize: 20.0, fontWeight: FontWeight.bold),
+        onChanged: (text){
+          controller.text = text;
+          if(text==''){
+            text = '0';
+          }
+          resp[row][col] = int.parse(text);
+        },
+      ),
+    );
+  }
+
+  List <Widget> getRow(int rowNumber, double imgSize){
+    return List.generate(9, (int colNumber){
+        return sudokuCell(rowNumber, colNumber, imgSize, resp[rowNumber][colNumber],resp);
+    });
+  }
+
+  List <TableRow> getTableRows(double imgSize){
+    return List.generate(9, (int rowNumber){
+      return TableRow(children:getRow(rowNumber,imgSize));
+    });
+  }
+
+  Widget correctionBox(double imgSize){
+    return Container(
+      height: imgSize,
+      width: imgSize,
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        border: TableBorder.symmetric(outside:BorderSide(width: 3, color: Colors.black),inside:BorderSide(width: 1, color: Colors.black)),
+      children: getTableRows(imgSize)
+    ));
   }
 
   getImgHeight(Size size,double imgSize) {
     var total = size.height*0.675;
     var img = (size.height*0.25)/2 + imgSize;
     var gap = (total-img)*0.05;
+    return img+gap;
+  }
+
+  getButtonHeight(Size size,double imgSize) {
+    var total = size.height*0.675;
+    var img = (size.height*0.25)/2 + imgSize;
+    var gap = (total-img)*0.1;
     return img+gap;
   }
 
@@ -678,8 +828,9 @@ class _AnswerState extends State<Answer> {
          image: DecorationImage(
          image: AssetImage("images/sky3.jpg"), fit: BoxFit.cover)),     
     child: Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
-        body: Column(
+        body: ListView(
         children: <Widget>[
                   Padding(
                     padding: EdgeInsets.fromLTRB(0.0, size.height*0.017, 0.0, 0.0),
@@ -734,10 +885,15 @@ class _AnswerState extends State<Answer> {
                       borderColor: Color.fromRGBO(62, 48, 100,1),
                       borderWidth: 0,
                       elevation: 2,
-                      backgroundColor: Colors.blue,
+                      backgroundColor: flag?Colors.red:Colors.blue,
                       radius: size.height*0.069
                     ),
                        ),
+                    flag? 
+                    Positioned(
+                    top: (size.height*0.25)/2,
+                    left: (size.width-imgSize)/2,                     
+                    child: correctionBox(imgSize)):
                     Positioned(
                               top: (size.height*0.25)/2,
                               left: (size.width-imgSize)/2,
@@ -761,6 +917,7 @@ class _AnswerState extends State<Answer> {
                         )
                         ),
                     ),
+                    flag? Container():
                       Positioned(
                         top: getImgHeight(size,imgSize),
                         right: (size.width-imgSize)/4.5,
@@ -781,6 +938,7 @@ class _AnswerState extends State<Answer> {
                           ),
                         ),
                       ),
+                      flag? Container():
                       Positioned(
                         top: getImgHeight(size,imgSize),
                         left: (size.width-imgSize)/4.5,
@@ -801,7 +959,32 @@ class _AnswerState extends State<Answer> {
                           side: BorderSide(color: Color.fromRGBO(62, 48, 100,1))
                           ),
                         ),
-                      ),                    
+                      ),
+                      flag? Positioned(
+                        top:getButtonHeight(size,imgSize),
+                        right: (size.width)/2-45,
+                        child: Container(
+                      decoration: BoxDecoration(
+                      color: Color.fromRGBO(	63, 61, 86,1),
+                      borderRadius: BorderRadius.circular(10.0)
+                ),
+                child: FlatButton.icon(
+                  onPressed: () {
+                 Navigator.push(
+                context,
+                  RevealRoute(
+                  page: Reloading(size,resp),
+                  maxRadius: size.height*1.17,
+                  centerAlignment: Alignment.bottomCenter,),
+                );                     
+                  }, 
+                  icon: Icon(Icons.touch_app, color: Colors.white,), 
+                  label: Text(
+                    'Fix',
+                    style: TextStyle(color:Colors.white,fontFamily: 'Quicksand'),
+                  ))
+                        )
+                      ): Container()
                     ],
                   )
         ]
