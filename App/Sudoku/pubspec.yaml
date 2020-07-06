@@ -41,6 +41,7 @@ dependencies:
   image_gallery_saver: ^1.5.0
   liquid_swipe: ^1.5.0-dev.1
   shared_preferences: ^0.5.7+3
+  speech_bubble: ^0.0.6
   flutter: 
     sdk: flutter
 

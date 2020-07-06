@@ -12,12 +12,14 @@ import 'package:Sudoku/ClipShadowPath.dart';
 import 'package:Sudoku/uploadImage.dart';
 import 'package:Sudoku/circleReveal.dart';
 import 'resources/app_config.dart';
+import 'package:speech_bubble/speech_bubble.dart';
 import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_swipe/liquid_swipe.dart';
 import 'dart:async';
 import 'dart:io';
 
+//
 
 Future <void> main() async{
     WidgetsFlutterBinding.ensureInitialized();
@@ -210,7 +212,7 @@ class _OnboardingState extends State<Onboarding> {
       pages: [
         Screens(size,'images/upload.png',Color.fromRGBO(	63, 61, 86,1),'Upload Image',obj.OnboardingText1,0, noOfScreens,control,3, Icons.add_box),
         Screens(size,'images/camera.png',Color.fromRGBO(249, 168, 38,1), 'Click Picture',obj.OnboardingText2,1,noOfScreens,control,2, Icons.camera_enhance),
-        Screens(size,'images/crop.png',Color.fromRGBO(140, 122, 230,1), 'Crop and Resize',obj.OnboardingText3,2,noOfScreens,control,1, Icons.crop),
+        Screens(size,'images/fix.png',Color.fromRGBO(140, 122, 230,1), 'Edit and Solve',obj.OnboardingText3,2,noOfScreens,control,1, Icons.touch_app),
         Screens(size,'images/Download.png',Color.fromRGBO(255, 99, 102,1), 'Download and Share',obj.OnboardingText4,3,noOfScreens,control,0, Icons.share)
       ],
       liquidController: control,
@@ -742,8 +744,8 @@ class _AnswerState extends State<Answer> {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: topLeft[0]? BorderSide(width: 2.0, color: Colors.black): BorderSide(width: 0.0, color: Colors.black),
-          left: topLeft[1]? BorderSide(width: 2.0, color: Colors.black): BorderSide(width: 0.0, color: Colors.black)
+          top: topLeft[0]? BorderSide(width: 2.0, color: Color.fromRGBO(	63, 61, 86,1)): BorderSide(width: 0.0, color: Color.fromRGBO(	63, 61, 86,1)),
+          left: topLeft[1]? BorderSide(width: 2.0, color: Color.fromRGBO(	63, 61, 86,1)): BorderSide(width: 0.0, color: Color.fromRGBO(	63, 61, 86,1))
         )
       ),
       child: TextField(
@@ -780,7 +782,7 @@ class _AnswerState extends State<Answer> {
       width: imgSize,
       child: Table(
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        border: TableBorder.symmetric(outside:BorderSide(width: 3, color: Colors.black),inside:BorderSide(width: 1, color: Colors.black)),
+        border: TableBorder.symmetric(outside:BorderSide(width: 3, color: Color.fromRGBO(	63, 61, 86,1)),inside:BorderSide(width: 1, color: Color.fromRGBO(	63, 61, 86,1))),
       children: getTableRows(imgSize)
     ));
   }
@@ -861,6 +863,19 @@ class _AnswerState extends State<Answer> {
                         ),                  
                         ]),
                   ),
+                  flag?SizedBox(height: size.width*0.024,):Container(),
+                    flag?Padding(
+                      padding: EdgeInsets.all(size.width*0.048),
+                      child: SpeechBubble(
+                        nipLocation: NipLocation.BOTTOM,
+                        nipHeight: 20.0,
+                        child: Text('Hello Human! I am the AI that powers this app. I strive to be better always, but like humans I am prone to errors. I have recogonized my error, down below you have an editable sudoku box, feel free to correct my mistakes.',
+                      style: TextStyle(fontFamily: 'Pokemon', fontSize: 10, height: 1.5),
+                      ),
+                      color: Colors.white,
+                      ),
+                    ):Container(),
+                  flag?SizedBox(height: size.height*0.68 - getCardHeight(size, imgSize)):
                   SizedBox(height: size.height*0.875 - getCardHeight(size, imgSize)),
                   Stack(
                     overflow: Overflow.visible,
@@ -998,15 +1013,6 @@ class _AnswerState extends State<Answer> {
 
 
 
-        //     Expanded(
-        //   child: Bubble(
-        //   elevation: 6.0,
-        //   margin: BubbleEdges.only(top: 10),
-        //   nip: BubbleNip.leftTop,
-        //   alignment: Alignment.topLeft,
-        //   child: Text('Hello Human! I am the AI that powers this app. I have solved the puzzle to the best of my abilities. Don\'t hesitate to compliment me :D',
-        //   style: TextStyle(fontFamily: 'Pokemon', fontSize: 10, height: 1.5),
-        //   ),
-        // )),
+
 
 
